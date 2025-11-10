@@ -1,4 +1,6 @@
 #define ROZMIAR 11
+#define X 'x'
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,20 +20,58 @@ typedef struct {
     int indeks;
 } Duzo;
 
-void _drukuj_wielomian(Wielomian w) {
-    for (int i = 10; i > 0; i--) {
-        if (w.t[i] != 0) {
-            if (w.t[i] != 1 && w.t[i] != -1) {
-                printf("%d", w.t[i]);
-            } else if (w.t[i] == -1) {
-                printf("-");
+void drukuj_jednomian(int wspolczynnik, int stopien, bool pierwszy) {
+    if (pierwszy) {
+        if (wspolczynnik == -1) {
+            printf("-");
+        } else if (wspolczynnik != 1) {
+            printf("%d", wspolczynnik);
+        }
+        if (stopien == 0 && (wspolczynnik == 1 || wspolczynnik == -1)) {
+            printf("1");
+        }
+        if (stopien > 0) {
+            putchar(X);
+        }
+        if (stopien > 1) {
+            printf("^%d", stopien);
+        }
+    } else {
+        if (wspolczynnik < 0) {
+            if (wspolczynnik == -1) {
+                printf(" - ");
+            } else {
+                printf(" - %d", -wspolczynnik);
             }
-            printf("x^");
-            printf("%d ", i);
+        } else {
+            if (wspolczynnik == 1) {
+                printf(" + ");
+            } else {
+                printf(" + %d", wspolczynnik);
+            }
+        }
+        if (stopien == 0 && (wspolczynnik == 1 || wspolczynnik == -1)) {
+            printf("1");
+        }
+        if (stopien > 0) {
+            putchar(X);
+        }
+        if (stopien > 1) {
+            printf("^%d", stopien);
         }
     }
-    if (w.t[0] != 0) {
-        printf("%d", w.t[0]);
+}
+
+void drukuj(Wielomian w) {
+    bool pierwszy = true;
+    for (int i = 10; i > 0; i--) {
+        if (w.t[i] != 0) {
+            drukuj_jednomian(w.t[i], i, pierwszy);
+            pierwszy = false;
+        }
+    }
+    if (w.t[0] != 0 || pierwszy) {
+        drukuj_jednomian(w.t[0], 0, pierwszy);
     }
     printf("\n");
 }
@@ -42,6 +82,26 @@ Wielomian zerowy_wielomian() {
         wielomian.t[i] = 0;
     }
     return wielomian;
+}
+
+Wielomian dodaj(Wielomian w1, Wielomian w2) {
+    Wielomian suma = zerowy_wielomian();
+    for (int i = 0; i < ROZMIAR; i++) {
+        suma.t[i] = w1.t[i] + w2.t[i];
+    }
+    return suma;
+}
+
+Wielomian pomnoz(Wielomian w1, Wielomian w2) {
+    Wielomian iloczyn = zerowy_wielomian();
+    for (int i = 0; i < ROZMIAR; i++) {
+        for (int j = 0; j < ROZMIAR; j++) {
+            if (w1.t[i] != 0 && w2.t[j] != 0) {
+                iloczyn.t[i+j] += w1.t[i] * w2.t[j];
+            }
+        }
+    }
+    return iloczyn;
 }
 
 Jednomian jed(int wspolczynnik, int stopien, int indeks) {
@@ -63,9 +123,9 @@ Duzo duz(int liczba, int indeks) {
  * Zwraca następny indeks znaku, który nie jest spacją albo końcem napisu, w przeciwnym razie -1.
  */
 int nastepny_indeks(char ch[], int i) {
-    int d = strlen(ch);
-    for (int j = i+1; j < d; j++) {
-        if (ch[j] != ' ') {
+    int d = (int) strlen(ch);
+    for (int j = i + 1; j < d; j++) {
+        if (ch[j] != ' ' && ch[j] != '\n') {
             return j;
         }
     }
@@ -85,7 +145,7 @@ Duzo parsuj_duzo(char ch[], int indeks) {
     if (cyfra(ch[indeks])) {
         int liczba = ch[indeks] - '0';
         int nast = nastepny_indeks(ch, indeks);
-        while (cyfra(ch[nast])) {
+        while (nast != -1 && cyfra(ch[nast])) {
             liczba = liczba * 10 + (ch[nast] - '0');
             nast = nastepny_indeks(ch, nast);
         }
@@ -96,17 +156,17 @@ Duzo parsuj_duzo(char ch[], int indeks) {
 
 Jednomian parsuj_jednomian_wewn(char ch[], int indeks, int mnoznik) {
     if (ch[indeks] == '1' && koniec_jednomianu(ch, indeks)) {
-        return jed(1, 0, nastepny_indeks(ch, indeks));
+        return jed(1 * mnoznik, 0, nastepny_indeks(ch, indeks));
     }
     Duzo duzo = parsuj_duzo(ch, indeks);
     int curr = duzo.indeks;
     if (curr == -1) {
         return jed(mnoznik * duzo.liczba, 0, -1);
     }
-    if (ch[curr] != 'x' && koniec_jednomianu(ch, curr)) {
+    if (ch[curr] != X && koniec_jednomianu(ch, curr)) {
         return jed(mnoznik * duzo.liczba, 0, nastepny_indeks(ch, curr));
     }
-    if (ch[curr] == 'x' && koniec_jednomianu(ch, curr)) {
+    if (ch[curr] == X && koniec_jednomianu(ch, curr)) {
         return jed(mnoznik * duzo.liczba, 1, nastepny_indeks(ch, curr));
     }
     // przechodzimy nad "x"
@@ -144,10 +204,29 @@ Wielomian parsuj_wielomian(char ch[]) {
     return wielomian;
 }
 
+Wielomian oblicz(Wielomian w1, char w2[]) {
+    if (w2[0] == '+') {
+        return dodaj(w1, parsuj_wielomian(w2));
+    }
+    return pomnoz(w1, parsuj_wielomian(w2));
+}
+
+void kalkulator() {
+    char napis[1000];
+    Wielomian w = zerowy_wielomian();
+    bool finished = false;
+    fgets(napis, sizeof napis, stdin);
+    while (!finished) {
+        w = oblicz(w, napis);
+        drukuj(w);
+        fgets(napis, sizeof napis, stdin);
+        if (napis[0] == '.') {
+            finished = true;
+        }
+    }
+}
+
 int main() {
-    char ch[] = "+4x^5-6x^4-x^2+2";
-    char ch2[] = "*-x^3 + 2x - 6";
-    char ch3[] = "+ -  3   x    ^     4    ";
-    char ch4[] = "*0";
-    _drukuj_wielomian(parsuj_wielomian(ch4));
+    kalkulator();
+    return 0;
 }
