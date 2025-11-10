@@ -1,0 +1,17 @@
+KOL 1/2009
+
+min cykl dł. 6 NWW - nie, np. 11100
+1011110110
+
+jakie słowa będą poprawne:
+- może na dwa sposoby się zatrzymać, więc:
+    S -> L|P
+    L -> L1|L2|L3
+    L1 -> 0C
+    C -> e|0C|1C
+    L2 -> 10100C|10110C
+    L3 -> 110C|100C
+    P -> P- | P--
+    P- -> 1|P--1
+    P-- -> 10|11|P--10|P--11|P-1110
+ostatni przypadek P--: żeby doskoczyć z ostatniego zera
