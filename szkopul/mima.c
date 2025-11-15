@@ -1,3 +1,15 @@
+/*
+Dane są dwie tablice A, B liczb całkowitych o długości N. Tablica A jest niemalejąca, tablica B jest nierosnąca.
+Znajdź minimalną wartości wyrażenia max(A[k], B[k]) dla k z przedziału [0..N-1].
+Wejście
+W pierwszym wierszu standardowego wejścia znajduje się jedna liczba całkowita N (1 ≤ N ≤ 1 000 000).
+W drugim wierszu znajduje się N liczb oddzielonych odstępami, odpowiadających zawartości tablicy A.
+W trzecim wierszu znajduje się N liczb oddzielonych odstępami, odpowiadających zawartości tablicy B.
+Wyjście
+Jedyny wiersz standardowego wyjścia powinien zawierać liczbę całkowitą oznaczającą znalezioną wartość z
+treści zadania, czyli min { max(A[k], B[k]) | k ∈ [0..N-1] }.
+*/
+
 #include <stdio.h>
 
 int min_max(int a1, int b1, int a2, int b2) {
