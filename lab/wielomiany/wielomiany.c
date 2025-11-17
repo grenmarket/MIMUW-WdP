@@ -18,7 +18,7 @@
 /**
  * Maksymalna długość wiersza danych.
  */
-#define DLUGOSC 1000
+#define DLUGOSC 1001
 
 /**
  * Znak symbolu zmiennej.
@@ -98,7 +98,7 @@ void pisz_x(int wspolczynnik, int stopien) {
  */
 void pisz_pierwszy_jednomian(int wspolczynnik, int stopien) {
     if (wspolczynnik == -1) {
-        printf("-");
+        putchar(MINUS);
     } else if (wspolczynnik != 1) {
         printf("%d", wspolczynnik);
     }
@@ -155,7 +155,7 @@ void pisz(Wielomian w) {
 }
 
 /**
- * Przekazuje pusty (zerowy) wielomian.
+ * Tworzy i przekazuje pusty (zerowy) wielomian.
  */
 Wielomian zerowy_wielomian() {
     Wielomian wielomian;
@@ -184,6 +184,7 @@ Wielomian pomnoz(Wielomian w1, Wielomian w2) {
     for (int i = 0; i < ROZMIAR; i++) {
         for (int j = 0; j < ROZMIAR; j++) {
             if (w1.t[i] != 0 && w2.t[j] != 0) {
+                // zakładamy że wynikowy wielomian ma stopień mniejszy lub równy 10
                 iloczyn.t[i + j] += w1.t[i] * w2.t[j];
             }
         }
@@ -218,7 +219,7 @@ Duzo duz(int liczba, int indeks) {
 int nastepny_indeks(Wiersz wiersz, int i) {
     const char *ch = wiersz.napis;
     for (int j = i + 1; j < wiersz.dlugosc; j++) {
-        if (ch[j] != ' ' && ch[j] != '\n') {
+        if (ch[j] != ' ' && ch[j] != '\n' && ch[j] != '\0') {
             return j;
         }
     }
