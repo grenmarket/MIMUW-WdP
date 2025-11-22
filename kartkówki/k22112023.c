@@ -11,8 +11,9 @@ int ind_trojkata(int a[], int n) {
         s = (i+j)/2;
         if (x > a[s]) {
             i = s+1;
+        } else {
+            j = s;
         }
-        j = s;
     }
     return i;
 }
