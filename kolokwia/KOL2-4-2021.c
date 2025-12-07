@@ -39,7 +39,31 @@ void wypisz(int T[], int n) {
     free(B);
 }
 
+void swap(int T[], int a, int b) {
+    int temp = T[a];
+    T[a] = T[b];
+    T[b] = temp;
+}
+
+// ?????
+void wypisz_stala_pamiec(int T[], int n, int i) {
+    // ostatni element zawsze ok
+    if (i == n-1) {
+        print(T, n);
+    }
+    else {
+        wypisz_stala_pamiec(T, n, i+1);
+        for (int k = i+1; k < n; k++) {
+            if (T[k] != T[k-1] && T[i] != T[k]) {
+                swap(T, i, k);
+                wypisz_stala_pamiec(T, n, i+1);
+                swap(T, i, k);
+            }
+        }
+    }
+}
+
 int main() {
-    int T[] = {2,2,3};
-    wypisz(T, 3);
+    int T[] = {2,2,3,3};
+    wypisz_stala_pamiec(T, 4, 0);
 }
