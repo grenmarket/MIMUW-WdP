@@ -1,10 +1,9 @@
 /**
  * Autor: Sławomir Blicharz
  *
- * The program is a simplified implementation of Knuth's Algorithm X
- * computing solutions of the exact cover problem.
- * It assumes that the data size will not exceed max values.
- * Additionally, it filters the output using the provided mask.
+ * Program jest uproszczoną implementacją algorytmu X Donalda Knutha.
+ * Zakładamy że dane wejściowe nie przekroczą maksymalnych rozmiarów.
+ * Rozwiązania wypisywane są z użyciem maski (filtra).
  */
 
 #include <limits.h>
@@ -14,24 +13,24 @@
 #include <string.h>
 
 /**
- * Max number of subsets.
+ * Maksymalna liczba podzbiorów.
  */
 #define MAX_N 200
 /**
- * Max line length (domain size).
+ * Maksymalna długość linii (liczność instancji/domeny).
  */
 #define MAX_D 300
 /**
- * Encodes absence of a subset element.
+ * Koduje nieobecność elementu instancji/domeny.
  */
 #define EMPTY '_'
 /**
- * Encodes that the element should not be filtered out.
+ * Koduje brak filtrowania danego elementu.
  */
 #define PLUS '+'
 
 /**
- * Helper struct to store a solution.
+ * Pomocniczna struktura do przechowywania rozwiązania.
  */
 typedef struct Node {
     bool *solution;
@@ -39,7 +38,7 @@ typedef struct Node {
 } Node;
 
 /**
- * Helper struct to store solutions.
+ * Pomocnicza struktura do przechowywania rozwiązań.
  */
 typedef struct {
     Node *head;
@@ -47,8 +46,8 @@ typedef struct {
 } List;
 
 /**
- * Helper struct to maintain and reverse state during
- * recursive calls.
+ * Pomocnicza struktura do przechowywania stanu pomiędzy
+ * poziomami rekursji.
  */
 typedef struct {
     bool incl_row[MAX_N];
@@ -57,7 +56,7 @@ typedef struct {
 } CoverState;
 
 /**
- * Initializes an empty solution list.
+ * Inicjalizuje pustą listę rozwiązań.
  */
 void list_init(List *list) {
     if (!list) return;
@@ -66,8 +65,8 @@ void list_init(List *list) {
 }
 
 /**
- * Allocates a new solution node and copies into it
- * the solution array.
+ * Tworzy nowy element listy rozwiązań i kopiuje do niego
+ * tablicę z rozwiązaniem.
  */
 Node* node_create(bool solution[], int subset_count) {
     Node *n = malloc(sizeof(Node));
@@ -78,7 +77,7 @@ Node* node_create(bool solution[], int subset_count) {
 }
 
 /**
- * Adds a new solution to the solution list.
+ * Dodaje nowe rozwiązanie do listy rozwiązań.
  */
 void list_append(List *list, bool solution[], int subset_count) {
     if (!list) return;
@@ -93,8 +92,7 @@ void list_append(List *list, bool solution[], int subset_count) {
 }
 
 /**
- * Prints the solution list, filtering the subset elements
- * using the provided mask.
+ * Drukuje rozwiązania, używając podanego filtra (maski).
  */
 void print_solutions(char matrix[MAX_N][MAX_D], List *list, bool *filter,
                      int subset_count, int domain_count) {
@@ -116,7 +114,7 @@ void print_solutions(char matrix[MAX_N][MAX_D], List *list, bool *filter,
 }
 
 /**
- * Cleans up the solution list and its nodes.
+ * Uwalnia pamięć listy rozwiązań i jej elementów.
  */
 void list_destroy(List *list) {
     if (!list) return;
@@ -131,8 +129,8 @@ void list_destroy(List *list) {
 }
 
 /**
- * Helper function to copy the current algorithm state
- * from one recursion layer to the next.
+ * Funkcja pomocnicza kopiująca stan algorytmu pomiędzy kolejnymi
+ * poziomami rekursji.
  */
 void copy_state(CoverState *to, const CoverState *from,
                 int subset_cnt, int domain_cnt) {
@@ -142,9 +140,8 @@ void copy_state(CoverState *to, const CoverState *from,
 }
 
 /**
- * Initializes the input data matrix and the filter array.
- * After reading the data, it sets the values of
- * subset_count and domain_count.
+ * Inicjalizuje macierz danych wejściowych i tablicę filtra/maski.
+ * Po wczytaniu danych ustawia wartość subset_count i domain_count.
  */
 void init(char matrix[][MAX_D], bool filter[],
           int *subset_count, int *domain_count) {
@@ -176,10 +173,10 @@ void init(char matrix[][MAX_D], bool filter[],
 }
 
 /**
- * Finds the index of the column with the smallest number
- * of subsets containing its element (as suggested by Knuth).
- * If there are columns such that no subset contains its element,
- * it sets the value of empty to true.
+ * Znajduje indeks kolumny z najmniejszą liczbą podzbiorów zawierających
+ * jej element (sugestia Knutha).
+ * Jeśli są takie kolumny, że żaden podzbiór nie zawiera ich elementu,
+ * ustawia wartość empty na true.
  */
 int min_column(CoverState *state, int domain_count, bool *empty) {
     int min_col = -1;
@@ -198,31 +195,24 @@ int min_column(CoverState *state, int domain_count, bool *empty) {
 }
 
 /**
- * The function first copies the state from one recursive layer above,
- * then removes from consideration certain rows and columns,
- * finally decrements the column count.
- *
- * @param to Algorithm state after this row is selected.
- * @param from Source algorith state (from one recursive layer above).
- * @param matrix The input data matrix.
- * @param chosen_row The index of the row chosen for the partial solution.
- * @param subset_count How many subsets there are.
- * @param domain_count How many domain elements there are.
+ * Funkcja najpierw kopiuje stan algorytmu z wyższego poziomu rekursji,
+ * następnie zaznacza pewne rzędy i kolumny jako usunięte,
+ * następnie aktualizuje liczbę elementów w kolumnach.
  */
 void apply_row(CoverState *to, CoverState *from, char matrix[MAX_N][MAX_D],
                int chosen_row, int subset_count, int domain_count) {
     copy_state(to, from, subset_count, domain_count);
 
     for (int col = 0; col < domain_count; col++) {
-        // remove each remaining column that has an element in the chosen row
+        // usuwa każdą pozostałą kolumnę która ma element w wybranym wierszu
         if (to->incl_col[col] && matrix[chosen_row][col] != EMPTY) {
             to->incl_col[col] = false;
             for (int row = 0; row < subset_count; row++) {
-                // remove all rows with an element in this column
+                // usuwa wszystkie rzędy które mają elementy w tej kolumnie
                 if (to->incl_row[row]) {
                     if (matrix[row][col] != EMPTY) {
                         to->incl_row[row] = false;
-                        // update the column count
+                        // aktualizuje liczbę elementów
                         for (int x = 0; x < domain_count; x++) {
                             if (to->incl_col[x] && matrix[row][x] != EMPTY) {
                                 to->col_count[x]--;
@@ -236,10 +226,12 @@ void apply_row(CoverState *to, CoverState *from, char matrix[MAX_N][MAX_D],
 }
 
 /**
- * The main recursive function. Retrieves the current algorithm state from
- * the stack at the appropriate depth, checks if a solution has been found
- * or if the current algorithm branch is unsuccessful.
- * Then calls itself recursively for each potential solution row.
+ * Główna funkcja rekurencyjna. Pobiera stan algorytmu na odpowiedniej
+ * głębokości rekursji, sprawdza czy zostało znalezione rozwiązanie
+ * albo czy aktualne odgałęzienie drzewa przeszukiwania nie może doprowadzić
+ * do rozwiązania.
+ * Następnie wywołuje samą siebie dla każdego potencjalnego rzędu, który
+ * może być zawarty w rozwiązaniu.
  */
 void cover(char matrix[MAX_N][MAX_D], bool solution[MAX_N], int subset_count,
            int domain_count, int depth, CoverState *state_stack, List *solutions) {
@@ -253,7 +245,7 @@ void cover(char matrix[MAX_N][MAX_D], bool solution[MAX_N], int subset_count,
         i++;
     }
     if (!has_column_left) {
-        // solution has been found
+        // znaleźliśmy rozwiązanie
         list_append(solutions, solution, subset_count);
         return;
     }
@@ -261,7 +253,7 @@ void cover(char matrix[MAX_N][MAX_D], bool solution[MAX_N], int subset_count,
     bool empty = false;
     int col = min_column(state, domain_count, &empty);
     if (empty) {
-        // this branch cannot succeed
+        // to odgałęzienie nie może doprowadzić do rozwiązania
         return;
     }
     for (int row = 0; row < subset_count; row++) {
@@ -276,22 +268,21 @@ void cover(char matrix[MAX_N][MAX_D], bool solution[MAX_N], int subset_count,
 }
 
 /**
- * Initialize all data structures, computes the solutions
- * and prints the results.
- * Cleans up the memory afterward.
+ * Inicjalizuje wszystkie struktury danych, oblicza rozwiązania
+ * i wypisuje wyniki. Następnie uwalnia pamięć.
  */
 int main() {
-    // initialize input data
+    // inicjalizuje dane wejściowe
     int height, width;
     char matrix[MAX_N][MAX_D];
     bool filter[MAX_D];
     init(matrix, filter, &height, &width);
-    // initialize solution list
+    // inicjalizuje listę rozwiązań
     bool solution[MAX_N];
     memset(solution, 0, sizeof(solution));
     List* solutions = malloc(sizeof(List));
     list_init(solutions);
-    // initialize state stack
+    // inicjalizuje stos stanów algorytmu
     CoverState state_stack[MAX_N];
     CoverState *state = &state_stack[0];
     for (int i = 0; i < height; i++)
