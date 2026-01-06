@@ -1,0 +1,20 @@
+export ROOT_DIR=$(pwd)
+export COMPILER=gcc
+
+export TESTS_DIR=$PWD'/tests'
+export SCRIPTS_DIR=$PWD'/scripts'
+
+# Ustawienia
+export SOURCE_CODE=./liczby_kolosalne.c
+export EXE=./calc
+
+# Ustawienia testerki 
+export TESTS=$(ls -1 -r $TESTS_DIR | tr '\n' ' ')
+export TESTS_MAX=500
+export TESTS_MAX_VALGRIND=5
+export TESTER="bash $SCRIPTS_DIR/tester.sh"
+
+alias c="bash $SCRIPTS_DIR/c.sh"
+alias h="bash $SCRIPTS_DIR/h.sh"
+alias l="bash $SCRIPTS_DIR/l.sh"
+alias test="bash $SCRIPTS_DIR/tester.sh"
