@@ -46,7 +46,7 @@ CollosalNumber *stack_pop(Stack *s) {
  * Basic operations on collosal numbers:
  */
 
-CollosalNumber *create_col_num() {
+CollosalNumber *zero() {
     CollosalNumber *n = malloc(sizeof(CollosalNumber));
     n->children = NULL;
     n->child_count = 0;
@@ -63,10 +63,10 @@ void add_col_nums_helper(CollosalNumber *a, CollosalNumber *b) {
     a->children[a->child_count++] = b;
 }
 
-CollosalNumber *copy_col_num(CollosalNumber *n) {
-    CollosalNumber *r = create_col_num();
+CollosalNumber *copy(CollosalNumber *n) {
+    CollosalNumber *r = zero();
     for (size_t i = 0; i < n->child_count; i++) {
-        add_col_nums_helper(r, copy_col_num(n->children[i]));
+        add_col_nums_helper(r, copy(n->children[i]));
     }
     return r;
 }
@@ -82,7 +82,7 @@ void free_col_num(CollosalNumber *n) {
 /**
  * Frees the memory allocated for the stack and its items.
  */
-void stack_free(Stack *s) {
+void free_stack(Stack *s) {
     while (s->size > 0) {
         free_col_num(stack_pop(s));
     }
@@ -94,11 +94,11 @@ void stack_free(Stack *s) {
  * Comparing methods:
  */
 
-int compare_col_nums(CollosalNumber *a, CollosalNumber *b) {
+int compare(CollosalNumber *a, CollosalNumber *b) {
     size_t i = 0;
 
     while (i < a->child_count && i < b->child_count) {
-        int c = compare_col_nums(a->children[i], b->children[i]);
+        int c = compare(a->children[i], b->children[i]);
         if (c != 0) {
             // one has a larger term
             return c;
@@ -116,13 +116,13 @@ int compare_col_nums(CollosalNumber *a, CollosalNumber *b) {
     return 0;
 }
 
-int equal_col_nums(CollosalNumber *a, CollosalNumber *b) {
+int equal(CollosalNumber *a, CollosalNumber *b) {
     if (a->child_count != b->child_count) {
         return 0;
     }
 
     for (size_t i = 0; i < a->child_count; i++) {
-        if (!equal_col_nums(a->children[i], b->children[i])) {
+        if (!equal(a->children[i], b->children[i])) {
             return 0;
         }
     }
@@ -136,14 +136,14 @@ int equal_col_nums(CollosalNumber *a, CollosalNumber *b) {
 int comparator_desc(const void *pa, const void *pb) {
     CollosalNumber *a = *(CollosalNumber **)pa;
     CollosalNumber *b = *(CollosalNumber **)pb;
-    return -compare_col_nums(a, b);
+    return -compare(a, b);
 }
 
 CollosalNumber* increment_col_num(CollosalNumber *exp);
 
 void add_term_col_num(CollosalNumber *n, CollosalNumber *term) {
     for (size_t i = 0; i < n->child_count; i++) {
-        if (equal_col_nums(n->children[i], term)) {
+        if (equal(n->children[i], term)) {
             // merge equal terms
             CollosalNumber *next_exp = increment_col_num(term);
             free_col_num(n->children[i]);
@@ -171,8 +171,8 @@ void add_term_col_num(CollosalNumber *n, CollosalNumber *term) {
  * @return exp + 1
  */
 CollosalNumber* increment_col_num(CollosalNumber *exp) {
-    CollosalNumber *r = copy_col_num(exp);
-    CollosalNumber *zero_exp = create_col_num();
+    CollosalNumber *r = copy(exp);
+    CollosalNumber *zero_exp = zero();
     add_term_col_num(r, zero_exp);
 
     return r;
@@ -189,7 +189,7 @@ void normalize_col_num(CollosalNumber *n) {
         sizeof(CollosalNumber *), comparator_desc);
 
     for (size_t i = 0; i + 1 < n->child_count; i++) {
-        if (equal_col_nums(n->children[i], n->children[i + 1])) {
+        if (equal(n->children[i], n->children[i + 1])) {
             CollosalNumber *carry = increment_col_num(n->children[i]);
 
             free_col_num(n->children[i]);
@@ -219,12 +219,12 @@ void normalize_col_num(CollosalNumber *n) {
  * Adds and returns two collosal numbers.
  */
 CollosalNumber *add_col_num(const CollosalNumber *a, const CollosalNumber *b) {
-    CollosalNumber *r = create_col_num();
+    CollosalNumber *r = zero();
     for (size_t i = 0; i < a->child_count; i++) {
-        add_col_nums_helper(r, copy_col_num(a->children[i]));
+        add_col_nums_helper(r, copy(a->children[i]));
     }
     for (size_t i = 0; i < b->child_count; i++) {
-        add_col_nums_helper(r, copy_col_num(b->children[i]));
+        add_col_nums_helper(r, copy(b->children[i]));
     }
     normalize_col_num(r);
     return r;
@@ -234,7 +234,7 @@ CollosalNumber *add_col_num(const CollosalNumber *a, const CollosalNumber *b) {
  * Multiplies and returns two collosal numbers.
  */
 CollosalNumber *multiply_col_num(CollosalNumber *a, CollosalNumber *b) {
-    CollosalNumber *r = create_col_num();
+    CollosalNumber *r = zero();
 
     for (size_t i = 0; i < a->child_count; i++) {
         for (size_t j = 0; j < b->child_count; j++) {
@@ -253,8 +253,8 @@ CollosalNumber *multiply_col_num(CollosalNumber *a, CollosalNumber *b) {
  * @return collosal number of value 2^exp
  */
 CollosalNumber *exp_col_num(CollosalNumber *exp) {
-    CollosalNumber *r = create_col_num();
-    add_col_nums_helper(r, copy_col_num(exp));
+    CollosalNumber *r = zero();
+    add_col_nums_helper(r, copy(exp));
     normalize_col_num(r);
     return r;
 }
@@ -264,7 +264,7 @@ CollosalNumber *exp_col_num(CollosalNumber *exp) {
  */
 
 CollosalNumber *parse_col_num(char **p) {
-    CollosalNumber *n = create_col_num();
+    CollosalNumber *n = zero();
 
     while (**p == '1') {
         (*p)++;
@@ -308,7 +308,7 @@ int main() {
                 free_col_num(n);
             } else if (op == ':') {
                 CollosalNumber *n = stack_pop(&stack);
-                stack_push(&stack, copy_col_num(n));
+                stack_push(&stack, copy(n));
                 stack_push(&stack, n);
             } else if (op == '^') {
                 CollosalNumber *n = stack_pop(&stack);
@@ -337,6 +337,6 @@ int main() {
         }
     }
 
-    stack_free(&stack);
+    free_stack(&stack);
     return 0;
 }
