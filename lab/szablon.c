@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct Node {
+typedef struct DigitNode {
     int value;
-    struct Node* next;
+    struct DigitNode* next;
 } Node;
 
 Node* create_node(int value, Node *next) {

@@ -300,4 +300,5 @@ int main() {
     cover(matrix, solution, height, width, 0, state, solutions);
     print_solutions(matrix, solutions, filter, height, width);
     list_destroy(solutions);
+    return 0;
 }

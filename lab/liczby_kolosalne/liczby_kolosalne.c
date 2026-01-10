@@ -1,3 +1,12 @@
+/**
+* Autor: Sławomir Blicharz
+ *
+ * Program jest implementacją kalkulatora liczb kolosalnych.
+ * Czyta zdefiniowane reprezentacje liczb kolosalnych i operacji ze
+ * standardowego wejścia i wypisuje znormalizowane reprezentacje
+ * wyników na standardowe wyjście.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +55,7 @@ CollosalNumber *stack_pop(Stack *s) {
  * Basic operations on collosal numbers:
  */
 
-CollosalNumber *zero() {
+CollosalNumber *empty() {
     CollosalNumber *n = malloc(sizeof(CollosalNumber));
     n->children = NULL;
     n->child_count = 0;
@@ -54,7 +63,7 @@ CollosalNumber *zero() {
     return n;
 }
 
-void add_col_nums_helper(CollosalNumber *a, CollosalNumber *b) {
+void append_child(CollosalNumber *a, CollosalNumber *b) {
     if (a->child_count == a->child_capacity) {
         a->child_capacity = a->child_capacity ? a->child_capacity * 2 : 4;
         a->children = realloc(a->children,
@@ -64,9 +73,9 @@ void add_col_nums_helper(CollosalNumber *a, CollosalNumber *b) {
 }
 
 CollosalNumber *copy(CollosalNumber *n) {
-    CollosalNumber *r = zero();
+    CollosalNumber *r = empty();
     for (size_t i = 0; i < n->child_count; i++) {
-        add_col_nums_helper(r, copy(n->children[i]));
+        append_child(r, copy(n->children[i]));
     }
     return r;
 }
@@ -139,13 +148,17 @@ int comparator_desc(const void *pa, const void *pb) {
     return -compare(a, b);
 }
 
-CollosalNumber* increment_col_num(CollosalNumber *exp);
+CollosalNumber* incremented(CollosalNumber *n);
 
+/**
+ * Adds the term to existing collosal number, resolving merges.
+ */
 void add_term_col_num(CollosalNumber *n, CollosalNumber *term) {
+    // resolve carries
     for (size_t i = 0; i < n->child_count; i++) {
         if (equal(n->children[i], term)) {
             // merge equal terms
-            CollosalNumber *next_exp = increment_col_num(term);
+            CollosalNumber *next_exp = incremented(term);
             free_col_num(n->children[i]);
             free_col_num(term);
 
@@ -160,19 +173,17 @@ void add_term_col_num(CollosalNumber *n, CollosalNumber *term) {
     }
 
     // just append
-    add_col_nums_helper(n, term);
-    qsort(n->children, n->child_count,
-        sizeof(CollosalNumber *), comparator_desc);
+    append_child(n, term);
 }
 
 /**
  * Returns an incremented collosal number.
- * @param exp collosal number
- * @return exp + 1
+ * @param n collosal number
+ * @return exp + 2^0
  */
-CollosalNumber* increment_col_num(CollosalNumber *exp) {
-    CollosalNumber *r = copy(exp);
-    CollosalNumber *zero_exp = zero();
+CollosalNumber* incremented(CollosalNumber *n) {
+    CollosalNumber *r = copy(n);
+    CollosalNumber *zero_exp = empty();
     add_term_col_num(r, zero_exp);
 
     return r;
@@ -181,16 +192,17 @@ CollosalNumber* increment_col_num(CollosalNumber *exp) {
 /**
  * Normalizes the tree that encodes this collosal number.
  */
-void normalize_col_num(CollosalNumber *n) {
+void normalize(CollosalNumber *n) {
     if (!n || !n->children) {
         return;
     }
+    // sort by value descending
     qsort(n->children, n->child_count,
         sizeof(CollosalNumber *), comparator_desc);
 
     for (size_t i = 0; i + 1 < n->child_count; i++) {
         if (equal(n->children[i], n->children[i + 1])) {
-            CollosalNumber *carry = increment_col_num(n->children[i]);
+            CollosalNumber *carry = incremented(n->children[i]);
 
             free_col_num(n->children[i]);
             free_col_num(n->children[i + 1]);
@@ -205,7 +217,7 @@ void normalize_col_num(CollosalNumber *n) {
 
             add_term_col_num(n, carry);
 
-            normalize_col_num(n);
+            normalize(n);
             return;
         }
     }
@@ -218,15 +230,15 @@ void normalize_col_num(CollosalNumber *n) {
 /**
  * Adds and returns two collosal numbers.
  */
-CollosalNumber *add_col_num(const CollosalNumber *a, const CollosalNumber *b) {
-    CollosalNumber *r = zero();
+CollosalNumber *add_col_num(CollosalNumber *a, CollosalNumber *b) {
+    CollosalNumber *r = empty();
     for (size_t i = 0; i < a->child_count; i++) {
-        add_col_nums_helper(r, copy(a->children[i]));
+        append_child(r, copy(a->children[i]));
     }
     for (size_t i = 0; i < b->child_count; i++) {
-        add_col_nums_helper(r, copy(b->children[i]));
+        append_child(r, copy(b->children[i]));
     }
-    normalize_col_num(r);
+    normalize(r);
     return r;
 }
 
@@ -234,16 +246,16 @@ CollosalNumber *add_col_num(const CollosalNumber *a, const CollosalNumber *b) {
  * Multiplies and returns two collosal numbers.
  */
 CollosalNumber *multiply_col_num(CollosalNumber *a, CollosalNumber *b) {
-    CollosalNumber *r = zero();
+    CollosalNumber *r = empty();
 
     for (size_t i = 0; i < a->child_count; i++) {
         for (size_t j = 0; j < b->child_count; j++) {
             CollosalNumber *sum = add_col_num(a->children[i], b->children[j]);
-            add_col_nums_helper(r, sum);
+            append_child(r, sum);
         }
     }
 
-    normalize_col_num(r);
+    normalize(r);
     return r;
 }
 
@@ -253,9 +265,9 @@ CollosalNumber *multiply_col_num(CollosalNumber *a, CollosalNumber *b) {
  * @return collosal number of value 2^exp
  */
 CollosalNumber *exp_col_num(CollosalNumber *exp) {
-    CollosalNumber *r = zero();
-    add_col_nums_helper(r, copy(exp));
-    normalize_col_num(r);
+    CollosalNumber *r = empty();
+    append_child(r, copy(exp));
+    normalize(r);
     return r;
 }
 
@@ -264,15 +276,15 @@ CollosalNumber *exp_col_num(CollosalNumber *exp) {
  */
 
 CollosalNumber *parse_col_num(char **p) {
-    CollosalNumber *n = zero();
+    CollosalNumber *n = empty();
 
     while (**p == '1') {
         (*p)++;
-        add_col_nums_helper(n, parse_col_num(p));
+        append_child(n, parse_col_num(p));
     }
 
     (*p)++; // last '0'
-    normalize_col_num(n);
+    normalize(n);
     return n;
 }
 
