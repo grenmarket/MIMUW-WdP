@@ -20,7 +20,7 @@ void free_drz(Twezel *d) {
 }
 
 Twezel* drzewo(Twezel *d, int *index, int depth) {
-    if (*index > 14 || depth > 3) {
+    if (*index > 16 || depth > 4) {
         return NULL;
     }
     if (!d) {
@@ -78,13 +78,59 @@ void dodaj_dzieci(Twezel *d, int *n) {
     }
 }
 
+void najw_dziecko(Twezel *d, int *n) {
+    if (!d) {
+        return;
+    }
+    int max;
+    if (d->lsyn == NULL && d->psyn == NULL) {
+        if (n && d->w > *n) {
+            *n = d->w;
+        }
+    } else {
+        najw_dziecko(d->lsyn, &max);
+        int m1 = max;
+        najw_dziecko(d->psyn, &max);
+        int m2 = max;
+        int m = m1 > m2 ? m1 : m2;
+        if (d->w < m) {
+            d->w = m;
+        }
+        *n = d->w;
+    }
+}
+
+Twezel* lisc_o_najmn_gl(Twezel *d, int *min, int curr) {
+    if (d) {
+        if (d->lsyn == NULL && d->psyn == NULL) {
+            if (curr < *min) {
+                *min = curr;
+                return d;
+            }
+            return NULL;
+        } else {
+            Twezel *lewy = lisc_o_najmn_gl(d->lsyn, min, curr+1);
+            Twezel *prawy = lisc_o_najmn_gl(d->psyn, min, curr+1);
+            if (!lewy) {
+                return prawy;
+            }
+            if (!prawy) {
+                return lewy;
+            }
+            return prawy;
+        }
+    } else {
+        return NULL;
+    }
+}
+
 
 int main() {
     int index = 0;
     Twezel *d = drzewo(NULL, &index, 0);
-    int liczba;
-    dodaj_dzieci(d, &liczba);
-    ob_pref_L(d);
+    int liczba = INT16_MAX;
+    Twezel* w = lisc_o_najmn_gl(d, &liczba, 0);
+    printf("%d\n", w->w);
     free_drz(d);
     return 0;
 }
