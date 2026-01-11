@@ -10,6 +10,7 @@ struct wezel {
 
 typedef struct wezel Twezel;
 
+
 void free_drz(Twezel *d) {
     if (!d) return;
     free_drz(d->lsyn);
@@ -20,7 +21,7 @@ void free_drz(Twezel *d) {
 }
 
 Twezel* drzewo(Twezel *d, int *index, int depth) {
-    if (*index > 16 || depth > 4) {
+    if (*index > 8 || depth > 3) {
         return NULL;
     }
     if (!d) {
@@ -31,6 +32,17 @@ Twezel* drzewo(Twezel *d, int *index, int depth) {
         nowy->psyn = drzewo(nowy->psyn, index, depth + 1);
         return nowy;
     }
+    return NULL;
+}
+
+void wstaw(int x, Twezel **d) {
+    if (*d == NULL) {
+        *d = malloc(sizeof(Twezel));
+        (*d)->w = x;
+        (*d)->lsyn = NULL; (*d)->psyn = NULL;
+    }
+    else if (x<(*d)->w) wstaw(x,&(*d)->lsyn);
+    else if (x>(*d)->w) wstaw(x,&(*d)->psyn);
 }
 
 int liczba_lisci(Twezel *d) {
@@ -46,6 +58,14 @@ void ob_pref_L(Twezel *d) {
         printf("%d ", d->w);
         ob_pref_L(d->lsyn);
         ob_pref_L(d->psyn);
+    }
+}
+
+void ob_inf_L(Twezel *d) {
+    if (d) {
+        ob_inf_L(d->lsyn);
+        printf("%d ", d->w);
+        ob_inf_L(d->psyn);
     }
 }
 
@@ -124,13 +144,57 @@ Twezel* lisc_o_najmn_gl(Twezel *d, int *min, int curr) {
     }
 }
 
+void *k_ty_h(Twezel *T, Twezel *R, int k, int *count) {
+    if (T) {
+        k_ty_h(T->lsyn, R, k, count);
+        if (*count <= k) {
+            if (*count == k) {
+                R = T;
+            }
+            (*count)++;
+        }
+        k_ty_h(T->psyn, R, k, count);
+    }
+}
+
+Twezel *k_ty(Twezel *T, int k) {
+    Twezel *R = malloc(sizeof(Twezel));
+    int count = 0;
+    k_ty_h(T, R, k, &count);
+    return R;
+}
+
+void P_NP(Twezel *T, int *niep, int *parz, int *ile) {
+    if (!T) {
+        *niep = 0;
+        *parz = 0;
+        return;
+    }
+
+    int lewy_niep, lewy_parz;
+    int prawy_niep, prawy_parz;
+
+    P_NP(T->lsyn, &lewy_niep, &lewy_parz, ile);
+    P_NP(T->psyn, &prawy_niep, &prawy_parz, ile);
+
+    *niep = lewy_niep || prawy_niep || T->w % 2 == 1;
+    *parz = T->w % 2 == 0 || prawy_parz || lewy_parz;
+
+    if (*niep && *parz) {
+        (*ile)++;
+    }
+}
+
 
 int main() {
-    int index = 0;
-    Twezel *d = drzewo(NULL, &index, 0);
-    int liczba = INT16_MAX;
-    Twezel* w = lisc_o_najmn_gl(d, &liczba, 0);
-    printf("%d\n", w->w);
-    free_drz(d);
+    int n = 1;
+    Twezel *drz = drzewo(NULL, &n, 0);
+    ob_inf_L(drz);
+    int nie = 0;
+    int pa = 0;
+    int ile = 0;
+    P_NP(drz, &nie, &pa, &ile);
+    printf("%d\n", ile);
+    free_drz(drz);
     return 0;
 }
