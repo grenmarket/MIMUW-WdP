@@ -51,6 +51,32 @@ Node *create_random_tree(int n) {
     return root;
 }
 
+Node *create_BST() {
+    Node *root = create_node(10);
+    Node *curr = root;
+    root->left = create_node(5);
+    root->right = create_node(15);
+    curr = curr->left;
+    curr->left = create_node(2);
+    curr->right = create_node(8);
+    curr = curr->left;
+    curr->left = create_node(1);
+    curr->right = create_node(3);
+    curr = root->left->right;
+    curr->left = create_node(7);
+    curr->right = create_node(9);
+    curr = root->right;
+    curr->left = create_node(13);
+    curr->right = create_node(18);
+    curr = curr->left;
+    curr->left = create_node(11);
+    curr->right = create_node(14);
+    curr = root->right->right;
+    curr->left = create_node(17);
+    curr->right = create_node(20);
+    return root;
+}
+
 void pretty_print(Node *root, int depth) {
     if (root == NULL)
         return;

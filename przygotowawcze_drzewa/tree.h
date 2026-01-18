@@ -8,6 +8,7 @@ typedef struct Node {
 } Node;
 
 Node *create_random_tree(int n);
+Node *create_BST();
 void pretty_print(Node *root, int depth);
 void free_tree(Node *root);
 
