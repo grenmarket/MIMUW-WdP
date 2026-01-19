@@ -1,15 +1,5 @@
-#include <stdio.h>
+#include "queue.h"
 #include <stdlib.h>
-
-typedef struct QNode {
-    int data;
-    struct QNode *next;
-} QNode;
-
-typedef struct {
-    QNode *front;
-    QNode *rear;
-} Queue;
 
 void initQueue(Queue *q) {
     q->front = NULL;
@@ -20,7 +10,7 @@ int isEmpty(Queue *q) {
     return q->front == NULL;
 }
 
-void enqueue(Queue *q, int value) {
+void enqueue(Queue *q, Node *value) {
     QNode *newNode = malloc(sizeof(QNode));
     if (!newNode) return;
 
@@ -35,13 +25,13 @@ void enqueue(Queue *q, int value) {
     }
 }
 
-int dequeue(Queue *q) {
+Node* dequeue(Queue *q) {
     if (isEmpty(q)) {
-        return -1;
+        return NULL;
     }
 
     QNode *temp = q->front;
-    int value = temp->data;
+    Node *value = temp->data;
 
     q->front = temp->next;
     if (q->front == NULL) {
@@ -50,19 +40,4 @@ int dequeue(Queue *q) {
 
     free(temp);
     return value;
-}
-
-int main() {
-    Queue q;
-    initQueue(&q);
-
-    enqueue(&q, 10);
-    enqueue(&q, 20);
-    enqueue(&q, 30);
-
-    printf("%d\n", dequeue(&q));
-    printf("%d\n", dequeue(&q));
-    printf("%d\n", dequeue(&q));
-
-    return 0;
 }
